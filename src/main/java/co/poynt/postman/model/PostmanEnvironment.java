@@ -33,4 +33,9 @@ public class PostmanEnvironment {
 			this.lookup.put(key,  newVar);
 		}
 	}
+
+	public String getEnvironmentVariable(final String key) {
+		final PostmanEnvValue postmanEnvValue = this.lookup.get(key);
+		return postmanEnvValue == null ? null : postmanEnvValue.value;
+	}
 }

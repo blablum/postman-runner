@@ -4,9 +4,55 @@
 		"name": "PostmanRunnerRegression",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "94d42fb0-09d7-4920-8dea-8f52a75f6224",
+				"exec": [
+					"postman.setEnvironmentVariable(\"collectionEventVar\", \"abc\");"
+				],
+				"type": "text/javascript"
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "94d42fb0-09d7-4920-8dea-8f52a75f6225",
+				"exec": [
+					"retrievedValue = postman.getEnvironmentVariable(\"collectionEventVar\");",
+					"tests[\"Collection scripts called\"] = retrievedValue == \"abc\";"
+				],
+				"type": "text/javascript"
+			}
+		}
+	],
 	"item": [
 		{
 			"name": "Echo",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "94d42fb0-09d7-4920-8dea-8f52a75f6226",
+						"exec": [
+							"postman.setEnvironmentVariable(\"folderEventVar\", \"xyz\");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "94d42fb0-09d7-4920-8dea-8f52a75f6227",
+						"exec": [
+							"retrievedValue = postman.getEnvironmentVariable(\"folderEventVar\");",
+							"tests[\"Folder scripts called\"] = retrievedValue == \"xyz\";"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"item": [
 				{
 					"name": "Make an echo",

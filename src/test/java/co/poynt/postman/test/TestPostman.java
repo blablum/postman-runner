@@ -58,7 +58,7 @@ public class TestPostman {
 		// For each folder, execute each request in order
 		for (PostmanFolder f : c.item) {
 			for (PostmanItem item : f.item) {
-				runner.run(item, runResult);
+				assert runner.run(c.event, f, item, runResult) : "There are failed postman tests";
 			}
 		}
 	}

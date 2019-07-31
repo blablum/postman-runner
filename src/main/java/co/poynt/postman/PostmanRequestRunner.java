@@ -34,12 +34,14 @@ import org.slf4j.LoggerFactory;
 
 import co.poynt.postman.js.PostmanJsVariables;
 import co.poynt.postman.model.PostmanEvent;
+import co.poynt.postman.model.PostmanFolder;
 import co.poynt.postman.model.PostmanItem;
 import co.poynt.postman.model.PostmanRequest;
 import co.poynt.postman.model.PostmanVariables;
 
 public class PostmanRequestRunner {
 	public static final String REQUEST_ID_HEADER = "POYNT-REQUEST-ID";
+	public static final String COLLECTION_EVENT_NAME = "Collection_Event";
 
 	private static final Logger logger = LoggerFactory.getLogger(PostmanRequestRunner.class);
 	private PostmanVariables var;
@@ -73,9 +75,11 @@ public class PostmanRequestRunner {
 		}
 	}
 
-	public boolean run(PostmanItem item, PostmanRunResult runResult) {
+	public boolean run(List<PostmanEvent> collectionEvents, PostmanFolder folder, PostmanItem item, PostmanRunResult runResult) {
 
-		runPrerequestScript(item, runResult);
+		runPrerequestScript(collectionEvents, runResult);
+		runPrerequestScript(folder.event, runResult);
+		runPrerequestScript(item.event, runResult);
 		PostmanRequest request = item.request;
 		Map<String, String> headers = request.getHeaders(var);
 		StringEntity entity;
@@ -163,20 +167,23 @@ public class PostmanRequestRunner {
 
 		// NOTE: there are certain negative test cases that expect 5xx series
 		// response code.
-		return this.evaluateTests(item, response, runResult);
+		return this.evaluateTests(collectionEvents, COLLECTION_EVENT_NAME, response, runResult) &&
+				this.evaluateTests(folder.event, folder.name, response, runResult) &&
+				this.evaluateTests(item.event, item.name, response, runResult);
 	}
 
 	/**
-	 * @param item
+	 * @param events       events containing the scripts to be run
+	 * @param name         name of the item for logging
 	 * @param httpResponse
 	 * @return true if all tests pass, false otherwise
 	 */
-	public boolean evaluateTests(PostmanItem item, PostmanHttpResponse httpResponse, PostmanRunResult runResult) {
+	public boolean evaluateTests(List<PostmanEvent> events, String name, PostmanHttpResponse httpResponse, PostmanRunResult runResult) {
 		List<String> tests = new ArrayList<>();
-		if (item.event == null || item.event.size() == 0) {
+		if (events == null || events.size() == 0) {
 			return true;
 		} else {
-			for (PostmanEvent event : item.event) {
+			for (PostmanEvent event : events) {
 				if (event.listen.equals("test")) {
 					tests = event.script.exec;
 				}
@@ -210,7 +217,7 @@ public class PostmanRequestRunner {
 				if ("false".equalsIgnoreCase(strVal)) {
 					hasFailure = true;
 					runResult.failedTest++;
-					runResult.failedTestName.add(item.name + "." + e.getKey().toString());
+					runResult.failedTestName.add(name + "." + e.getKey().toString());
 					isSuccessful = false;
 				}
 
@@ -253,12 +260,12 @@ public class PostmanRequestRunner {
 		return testsBuilder.toString().trim();
 	}
 
-	public boolean runPrerequestScript(PostmanItem item, PostmanRunResult runResult) {
+	public boolean runPrerequestScript(List<PostmanEvent> events, PostmanRunResult runResult) {
 		List<String> prerequest = new ArrayList<>();
-		if (item.event == null || item.event.isEmpty()) {
+		if (events == null || events.isEmpty()) {
 			return true;
 		} else {
-			for (PostmanEvent event : item.event) {
+			for (PostmanEvent event : events) {
 				if (event.listen.equals("prerequest")) {
 					prerequest = event.script.exec;
 				}

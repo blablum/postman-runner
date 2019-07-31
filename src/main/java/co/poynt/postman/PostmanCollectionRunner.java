@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import co.poynt.postman.model.PostmanCollection;
 import co.poynt.postman.model.PostmanEnvironment;
+import co.poynt.postman.model.PostmanEvent;
 import co.poynt.postman.model.PostmanFolder;
 import co.poynt.postman.model.PostmanItem;
 import co.poynt.postman.model.PostmanVariables;
@@ -96,13 +97,14 @@ public class PostmanCollectionRunner {
 		}
 
 		PostmanRequestRunner runner = new PostmanRequestRunner(var, haltOnError, observers);
+		List<PostmanEvent> collectionEvents = c.event;
 		boolean isSuccessful = true;
 		if (folder != null) {
-			isSuccessful = runFolder(haltOnError, runner, var, folder, runResult);
+			isSuccessful = runFolder(collectionEvents, haltOnError, runner, var, folder, runResult);
 		} else {
 			// Execute all folder all requests
 			for (PostmanFolder pf : c.item) {
-				isSuccessful = runFolder(haltOnError, runner, var, pf, runResult) && isSuccessful;
+				isSuccessful = runFolder(collectionEvents, haltOnError, runner, var, pf, runResult) && isSuccessful;
 				if (haltOnError && !isSuccessful) {
 					return runResult;
 				}
@@ -114,7 +116,7 @@ public class PostmanCollectionRunner {
 		return runResult;
 	}
 
-	private boolean runFolder(boolean haltOnError, PostmanRequestRunner runner, PostmanVariables var,
+	private boolean runFolder(List<PostmanEvent> collectionEvents, boolean haltOnError, PostmanRequestRunner runner, PostmanVariables var,
 			PostmanFolder folder, PostmanRunResult runResult) {
 		logger.info("==> POSTMAN Folder: " + folder.name);
 		boolean isSuccessful = true;
@@ -122,7 +124,7 @@ public class PostmanCollectionRunner {
 			runResult.totalRequest++;
 			logger.info("======> POSTMAN request: " + fItem.name);
 			try {
-				boolean runSuccess = runner.run(fItem, runResult);
+				boolean runSuccess = runner.run(collectionEvents, folder, fItem, runResult);
 				if (!runSuccess) {
 					runResult.failedRequest++;
 					runResult.failedRequestName.add(folder.name + "." + fItem.name);

@@ -6,4 +6,5 @@ public class PostmanFolder {
 	public String name;
 	public String description;
 	public List<PostmanItem> item;
+	public List<PostmanEvent> event;
 }
